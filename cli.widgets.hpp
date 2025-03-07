@@ -10,7 +10,9 @@ namespace CLI {
 		bool focus = false;
 		std::vector<Widget*> children;
 		LocalizingText text;
-		Widget(Application& app) : app(app) {}
+		Widget(Application& app) : app(app) {
+			app.widgets.push_back(*this);
+		}
 		~Widget() {
 			for (auto& i : this->children) delete i;
 		}
@@ -22,6 +24,7 @@ namespace CLI {
 	};
 
 	struct Application : Widget {
+		std::vector<Widget&> widgets;
 		size_t selected = 0;
 		HANDLE console;
 		LanguageManager languages;
@@ -43,6 +46,11 @@ namespace CLI {
 				return this->children[selected]->onRender();
 			else return "";
 		}
+		void onKeyPress(char key) {
+			for (auto& i : this->children) {
+				i->onKeyPress(key);
+			}
+		}
 		void mainloop() {
 			while (1) {
 				cls();
@@ -54,10 +62,8 @@ namespace CLI {
 				}
 				if (_kbhit()) {
 					char key = _getch();
+					this->onKeyPress(key);
 					if (key == 'z') break;
-					for (auto& i : this->children) {
-						i->onKeyPress(key);
-					}
 				}
 				Sleep(1000 / 60);
 			}
