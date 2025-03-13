@@ -20,6 +20,4 @@ namespace CLI {
 	struct Widget;
 	struct Application;
 
-	typedef void ButtonFunc(Widget*);
-
 }

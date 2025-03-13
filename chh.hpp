@@ -3,88 +3,87 @@
 // C++ HillQiu's Helper, a lightweight helping header. 
 
 #include <cstdio>
-#include <conio.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <map>
-#include <format>
+#include <any>
+#include <variant>
+#include <functional>
+#include <exception>
+#include <stdexcept>
+#include <filesystem>
 #ifdef _WIN32
 #include <Windows.h>
+#include <conio.h>
+#undef max
+#undef min
 #endif
-#ifdef _linux_
+#ifdef __linux__
 #endif
 #include <json/json.h>
 
-#define CHH_THROW_ERROR(CONTENT) CHH::error(CONTENT, __LINE__, __FILE__)
-
 namespace CHH {
-
-	typedef void CleanFunc(void*);
-	std::vector<void*> glb_clean_schedule_data;
-	std::vector<CleanFunc*> glb_clean_schedule;
-
-	void error(std::string content, size_t line, std::string file_name) {
-		std::cerr << "Error at [" << file_name << "," << line << "] because: \n" << content;
-		for (size_t i = 0; i < glb_clean_schedule.size(); i++) {
-			glb_clean_schedule[i](glb_clean_schedule_data[i]);
-		}
-		std::exit(EXIT_FAILURE);
-	}
 
 	std::string to_string(const std::vector<char>& vec) {
 		return std::string(vec.begin(), vec.end());
 	}
 
 	std::vector<char> readFile(std::string file_name) {
-		std::ifstream file(file_name, std::ios::binary);
-		if (!file) {
-			CHH_THROW_ERROR("unable to open file: " + file_name);
+		try {
+			std::ifstream file(file_name, std::ios::binary);
+			if (!file) {
+				throw std::runtime_error("Unable to open file: " + file_name);
+			}
+			std::uintmax_t size = std::filesystem::file_size(file_name);
+			if (size > std::numeric_limits<std::streamsize>::max()) {
+				throw std::runtime_error("File too large to read into a vector.");
+			}
+			std::vector<char> vec(static_cast<std::size_t>(size));
+			if (!file.read(vec.data(), static_cast<std::streamsize>(size))) {
+				throw std::runtime_error("Unable to read file: " + file_name);
+			}
+			return vec;
 		}
-		file.seekg(0, std::ios::end);
-		std::streampos size = file.tellg();
-		if (size <= 0) {
-			CHH_THROW_ERROR("file is invalid: " + file_name);
+		catch (const std::filesystem::filesystem_error& e) {
+			throw std::runtime_error("Filesystem error: " + std::string(e.what()));
 		}
-		file.seekg(0, std::ios::beg);
-		std::vector<char> vec(size);
-		if (!file.read(vec.data(), size)) {
-			CHH_THROW_ERROR("unable to read file: " + file_name);
-		}
-		return vec;
 	}
 
 	std::vector<char> readFromResource(size_t name, std::string type) {
 		HRSRC hRsrc = FindResourceA(NULL, MAKEINTRESOURCEA(name), type.c_str());
-		if (!hRsrc) CHH_THROW_ERROR("Failed to find resource: " + std::to_string(name) + ".\n");
+		if (!hRsrc) {
+			throw std::runtime_error("Failed to find resource: " + std::to_string(name) + ".");
+		}
 		HGLOBAL IDR = LoadResource(NULL, hRsrc);
-		if (!IDR) CHH_THROW_ERROR("Failed to load resource: " + std::to_string(name) + ".\n");
+		if (!IDR) {
+			throw std::runtime_error("Failed to load resource: " + std::to_string(name) + ".");
+		}
 		DWORD size = SizeofResource(NULL, hRsrc);
 		if (size == 0) {
 			FreeResource(IDR);
-			CHH_THROW_ERROR("Resource size is 0: " + std::to_string(name) + ".\n");
+			throw std::runtime_error("Resource size is 0: " + std::to_string(name) + ".");
 		}
 		char* arr = (char*)LockResource(IDR);
 		if (!arr) {
 			FreeResource(IDR);
-			CHH_THROW_ERROR("Failed to lock resource: " + std::to_string(name) + ".\n");
+			throw std::runtime_error("Failed to lock resource: " + std::to_string(name) + ".");
 		}
 		std::vector<char> vec(arr, arr + size);
 		FreeResource(IDR);
 		return vec;
 	}
 
-	bool parseJson(const std::string& content, Json::Value& root) {
+	Json::Value parseJson(const std::string& content) {
+		Json::Value root;
 		Json::CharReaderBuilder reader;
 		std::unique_ptr<Json::CharReader> parser(reader.newCharReader());
 		std::string errs;
-		bool parsingSuccessful = parser->parse(content.c_str(), content.c_str() + content.size(), &root, &errs);
-		if (!parsingSuccessful) {
-			CHH_THROW_ERROR("Failed to parse JSON: \n" + errs);
-			return false;
+		if (!parser->parse(content.c_str(), content.c_str() + content.size(), &root, &errs)) {
+			throw std::runtime_error("Failed to parse JSON: \n" + errs);
 		}
-		return true;
+		return root;
 	}
 
 }

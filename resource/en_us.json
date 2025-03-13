@@ -1,4 +1,7 @@
 ﻿{
-  "game.launch": "Launch"
-
+  "one": "{}",
+  "menu": "Menu",
+  "menu.launch": "Launch",
+  "menu.accounts": "Accounts",
+  "menu.settings": "Settings"
 }

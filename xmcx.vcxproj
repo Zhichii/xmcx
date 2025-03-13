@@ -159,6 +159,7 @@
     <None Include="resource\en_us.json" />
     <None Include="resource\none.json" />
     <None Include="resource\zh_cn.json" />
+    <None Include="resource\zh_tw.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

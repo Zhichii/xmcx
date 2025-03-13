@@ -55,6 +55,9 @@
     <None Include="resource\zh_cn.json">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="resource\zh_tw.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
