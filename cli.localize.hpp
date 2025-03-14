@@ -1,9 +1,12 @@
 #pragma once
 
-#include "cli.basic.hpp"
+// Internationalization (i18n) for the lightweight CLI framework.
+
+#include "chh.hpp"
 
 namespace CLI {
 
+    // Manages different languages.
     struct LanguageManager {
         struct Language {
             Language() = default;
@@ -32,10 +35,10 @@ namespace CLI {
             this->_languages[name] = Language(content);
         }
         void loadLanguageFromFile(std::string name, std::string file_name) {
-            this->_languages[name] = Language(CHH::to_string(CHH::readFile(file_name)));
+            this->_languages[name] = Language(CHH::toString(CHH::readFile(file_name)));
         }
         void loadLanguageFromResource(std::string name, size_t res_name, std::string res_type) {
-            this->_languages[name] = Language(CHH::to_string(CHH::readFromResource(res_name, res_type)));
+            this->_languages[name] = Language(CHH::toString(CHH::readFromResource(res_name, res_type)));
         }
         void switchLanguage(std::string language) {
             if (this->_languages.count(language)) {
@@ -48,6 +51,7 @@ namespace CLI {
         std::string localize(std::string key) const {
             return this->_languages.at(this->_current).localize(key);
         }
+        // Returns the currently selected language.
         std::string current() const {
             return this->_current;
         }
@@ -56,6 +60,7 @@ namespace CLI {
         std::string _current;
     };
 
+    // Localizes one string by key.
     struct LocalizingString {
         LocalizingString(std::string key) : _key(key) {}
         std::string localize(const LanguageManager& languages) const {
@@ -65,6 +70,7 @@ namespace CLI {
         std::string _key;
     }; 
 
+    // Concatenates LocalizingStrings and strings.
     struct Text {
         Text() = default;
         Text(const Text& text) = default;
@@ -80,6 +86,7 @@ namespace CLI {
             this->_parts.insert(this->_parts.end(), that._parts.begin(), that._parts.end());
             return *this;
         }
+        // Localizes the text based on the current language settings.
         std::string localize(const LanguageManager& languages) const {
             if (this->_cache_language != languages.current()) {
                 this->_cache_language = languages.current();
@@ -98,6 +105,7 @@ namespace CLI {
             }
             return this->_cache;
         }
+        // Returns the number of parts in the text.
         size_t parts_size() const {
             return this->_parts.size();
         }

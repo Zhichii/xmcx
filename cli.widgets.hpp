@@ -1,13 +1,30 @@
 #pragma once
 
-#include "cli.basic.hpp"
+// Widgets of a lightweight CLI framework.
+
+#include "chh.hpp"
 #include "cli.localize.hpp"
 
 namespace CLI {
 
+    // Move the console cursor to (0,0).
+    void cls() {
+#ifdef _WIN32
+        COORD coord;
+        coord.X = 0; coord.Y = 0;
+        HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
+        SetConsoleCursorPosition(console, coord);
+#endif
+#ifdef _linux_
+#endif
+    }
+
+	struct Widget;
+
 	typedef void _Function(Widget*);
 	typedef std::function<_Function> Function;
 
+	// The base class for widgets.
 	struct Widget {
 		Widget(Widget* parent);
 		~Widget() {
@@ -31,6 +48,7 @@ namespace CLI {
 		bool _focus = false;
 	};
 
+	// The main entry for the whole application.
 	struct Application : Widget {
 		Application() : Widget(nullptr) {
 #ifdef _WIN32
@@ -110,6 +128,7 @@ namespace CLI {
 		else this->_app = (Application*)this;
 	}
 
+	// The button class.
 	struct Button : Widget {
 		Button(Widget* parent, Text label) : Widget(parent) {
 			this->setText(label);
@@ -132,6 +151,7 @@ namespace CLI {
 		Function _on_activate = nullptr;
 	};
 
+	// Vertical or horizontal layout.
 	struct List : Widget {
 		const static size_t STYLE_VERTICAL = 0x0;
 		const static size_t STYLE_HORIZONTAL = 0x1;

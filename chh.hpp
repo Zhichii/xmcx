@@ -1,6 +1,6 @@
 #pragma once
 
-// C++ HillQiu's Helper, a lightweight helping header. 
+// C++ HillQiu's Helper: A lightweight C++ header with file, resource, and JSON loading.
 
 #include <cstdio>
 #include <iostream>
@@ -26,10 +26,12 @@
 
 namespace CHH {
 
-	std::string to_string(const std::vector<char>& vec) {
+	// Converts a vector of characters to a string.
+	std::string toString(const std::vector<char>& vec) {
 		return std::string(vec.begin(), vec.end());
 	}
 
+	// Reads the contents of a file into a vector of characters.
 	std::vector<char> readFile(std::string file_name) {
 		try {
 			std::ifstream file(file_name, std::ios::binary);
@@ -51,7 +53,9 @@ namespace CHH {
 		}
 	}
 
+	// Reads a resource from the system by its name and type.
 	std::vector<char> readFromResource(size_t name, std::string type) {
+#ifdef _WIN32
 		HRSRC hRsrc = FindResourceA(NULL, MAKEINTRESOURCEA(name), type.c_str());
 		if (!hRsrc) {
 			throw std::runtime_error("Failed to find resource: " + std::to_string(name) + ".");
@@ -73,8 +77,12 @@ namespace CHH {
 		std::vector<char> vec(arr, arr + size);
 		FreeResource(IDR);
 		return vec;
+#endif
+#ifdef __linux__
+#endif
 	}
 
+	// Parses a JSON string into a JSON object.
 	Json::Value parseJson(const std::string& content) {
 		Json::Value root;
 		Json::CharReaderBuilder reader;
