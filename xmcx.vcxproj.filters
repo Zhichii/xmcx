@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cli.basic.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="cli.widgets.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -46,16 +43,19 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resource\en_us.json">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\none.json">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="resource\zh_cn.json">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="resource\zh_tw.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\en_us.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\en_jp.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\ja_jp.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

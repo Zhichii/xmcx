@@ -4,22 +4,25 @@
 
 #include "chh.hpp"
 
-namespace CLI {
+namespace cli {
 
     // Manages different languages.
-    struct LanguageManager {
-        struct Language {
+    class LanguageManager {
+    public:
+        class Language {
+        public:
             Language() = default;
-            Language(std::string content) {
-                Json::Value root = CHH::parseJson(content);
+            Language(std::string font, const std::string& content) {
+                Json::Value root = chh::parseJson(content);
                 if (!root.isObject()) {
                     throw std::runtime_error("`root` is not an object.");
                 }
                 for (const auto& i : root.getMemberNames()) {
                     this->_content[i] = root[i].asString();
                 }
+                this->_font = chh::toWString(font);
             }
-            std::string localize(std::string key) const {
+            std::string localize(const std::string& key) const {
                 if (this->_content.count(key)) {
                     return this->_content.at(key);
                 }
@@ -27,22 +30,25 @@ namespace CLI {
                     return key;
                 }
             }
+            std::wstring font() const { return this->_font; }
         private:
             std::map<std::string, std::string> _content;
+            std::wstring _font;
         };
         LanguageManager() = default;
-        void loadLanguage(std::string name, std::string content) {
-            this->_languages[name] = Language(content);
+        void load(const std::string& name, const std::string& font, const std::string& content) {
+            this->_languages[name] = Language(font, content);
         }
-        void loadLanguageFromFile(std::string name, std::string file_name) {
-            this->_languages[name] = Language(CHH::toString(CHH::readFile(file_name)));
+        void loadFile(const std::string& name, const std::string& font, const std::string& file_name) {
+            this->_languages[name] = Language(font, chh::toString(chh::readFile(file_name)));
         }
-        void loadLanguageFromResource(std::string name, size_t res_name, std::string res_type) {
-            this->_languages[name] = Language(CHH::toString(CHH::readFromResource(res_name, res_type)));
+        void loadResource(std::string name, const std::string& font, size_t res_name, std::string res_type) {
+            this->_languages[name] = Language(font, chh::toString(chh::readResource(res_name, res_type)));
         }
-        void switchLanguage(std::string language) {
+        const Language& switchLanguage(std::string language) {
             if (this->_languages.count(language)) {
                 this->_current = language;
+                return this->_languages.at(this->_current);
             }
             else {
                 throw std::runtime_error("No language called " + language);
@@ -61,7 +67,8 @@ namespace CLI {
     };
 
     // Localizes one string by key.
-    struct LocalizingString {
+    class LocalizingString {
+    public:
         LocalizingString(std::string key) : _key(key) {}
         std::string localize(const LanguageManager& languages) const {
             return languages.localize(this->_key);
@@ -71,7 +78,8 @@ namespace CLI {
     }; 
 
     // Concatenates LocalizingStrings and strings.
-    struct Text {
+    class Text {
+    public:
         Text() = default;
         Text(const Text& text) = default;
         Text(const LocalizingString& string) : _parts({ string }) {}
@@ -106,7 +114,7 @@ namespace CLI {
             return this->_cache;
         }
         // Returns the number of parts in the text.
-        size_t parts_size() const {
+        size_t size() const {
             return this->_parts.size();
         }
     private:

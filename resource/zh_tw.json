@@ -1,6 +1,7 @@
 ﻿{
-  "menu": "菜單",
+  "menu": "選單",
   "menu.launch": "啟動",
   "menu.accounts": "帳戶",
+  "menu.mods": "模組",
   "menu.settings": "設定"
 }

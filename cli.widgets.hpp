@@ -5,7 +5,7 @@
 #include "chh.hpp"
 #include "cli.localize.hpp"
 
-namespace CLI {
+namespace cli {
 
     // Move the console cursor to (0,0).
     void cls() {
@@ -20,6 +20,7 @@ namespace CLI {
     }
 
 	struct Widget;
+	struct Application;
 
 	typedef void _Function(Widget*);
 	typedef std::function<_Function> Function;
@@ -38,7 +39,7 @@ namespace CLI {
 		void setText(Text text) { this->_text = text; }
 		const std::vector<Widget*>& children() { return this->_children; }
 		void addChild(Widget* widget) {
-			this->_children.push_back((Widget*)widget);
+			this->_children.push_back(widget);
 		}
 	private:
 		Application* _app;
@@ -57,6 +58,7 @@ namespace CLI {
 			GetConsoleCursorInfo(this->_console, &cci);
 			cci.bVisible = false;
 			SetConsoleCursorInfo(this->_console, &cci);
+			setlocale(LC_ALL, "zh_cn.utf8");
 			SetConsoleOutputCP(CP_UTF8);
 #endif
 #ifdef _linux_
@@ -96,19 +98,22 @@ namespace CLI {
 			}
 		}
 		const LanguageManager& languages() { return this->_languages; }
-		void loadLanguage(std::string name, std::string content) {
-			this->_languages.loadLanguage(name, content);
+		void loadLanguage(const std::string& name, const std::string& font, const std::string& content) {
+			this->_languages.load(name, font, content);
 		}
-		void loadLanguageFromFile(std::string name, std::string file_name) {
-			this->_languages.loadLanguageFromFile(name, file_name);
+		void loadLanguageFromFile(const std::string& name, const std::string& font, const std::string& file_name) {
+			this->_languages.loadFile(name, font, file_name);
 		}
-		void loadLanguageFromResource(std::string name, size_t res_name, std::string res_type) {
-			this->_languages.loadLanguageFromResource(name, res_name, res_type);
+		void loadLanguageFromResource(const std::string& name, const std::string& font, const size_t& res_name, const std::string& res_type) {
+			this->_languages.loadResource(name, font, res_name, res_type);
 		}
-		void switchLanguage(std::string language) {
-			this->_languages.switchLanguage(language);
+		void switchLanguage(const std::string& name) {
+			const LanguageManager::Language& language = this->_languages.switchLanguage(name);
+			this->setFont(language.font(), 16);
 		}
-		void exit() { this->_should_exit = true; }
+		void exit() {
+			this->_should_exit = true;
+		}
 	private:
 		std::vector<Widget*> _widgets;
 		size_t _focus = 0;
@@ -116,6 +121,18 @@ namespace CLI {
 		HANDLE _console;
 		LanguageManager _languages;
 		bool _should_exit = false;
+		BOOL setFont(const std::wstring& name, SHORT font_size) {
+			if (name.size() >= LF_FACESIZE) return FALSE;
+			CONSOLE_FONT_INFOEX fontInfo;
+			fontInfo.cbSize = sizeof(fontInfo);
+			fontInfo.nFont = 0;
+			fontInfo.dwFontSize.X = 0;
+			fontInfo.dwFontSize.Y = font_size;
+			fontInfo.FontFamily = FF_DONTCARE;
+			fontInfo.FontWeight = FW_NORMAL;
+			wcscpy_s(fontInfo.FaceName, LF_FACESIZE, name.c_str());
+			return SetCurrentConsoleFontEx(this->_console, TRUE, &fontInfo);
+		}
 	};
 
 	Widget::Widget(Widget* parent) {
@@ -155,45 +172,45 @@ namespace CLI {
 	struct List : Widget {
 		const static size_t STYLE_VERTICAL = 0x0;
 		const static size_t STYLE_HORIZONTAL = 0x1;
-		size_t style = STYLE_VERTICAL;
-		size_t selected = 0;
 		List(Widget* parent, Text title = {}) : Widget(parent) {
 			this->setText(title);
 		}
 		~List() {}
 		std::string onRender(bool focus) {
 			std::string o;
-			if (this->text().parts_size() != 0) {
-				if (focus) o += "<" + this->text().localize(this->app()->languages()) + ">\n";
-				else o += " " + this->text().localize(this->app()->languages()) + " \n";
+			if (this->text().size() != 0) {
+				if (focus) o += "<" + this->text().localize(this->app()->languages()) + ">";
+				else o += " " + this->text().localize(this->app()->languages());
 			}
 			for (size_t j = 0; j < this->children().size(); j++) {
+				if (this->_style == STYLE_VERTICAL) o += "\n";
+				if (this->_style == STYLE_HORIZONTAL) o += " ";
 				auto& i = this->children().at(j);
-				o += i->onRender(focus && (this->selected == j));
-				if (j != this->children().size() - 1) {
-					if (this->style == STYLE_VERTICAL) o += "\n";
-					if (this->style == STYLE_HORIZONTAL) o += " ";
-				}
+				o += i->onRender(focus && (this->_selected == j));
 			}
 			return o;
 		}
 		bool onKeyPress(char key) {
-			bool did = this->children().at(this->selected)->onKeyPress(key);
+			if (this->children().size() == 0) return false;
+			bool did = this->children().at(this->_selected)->onKeyPress(key);
 			if (did) return true;
 			if (key == 'w') {
-				if (this->selected > 0) {
-					this->selected--;
+				if (this->_selected > 0) {
+					this->_selected--;
 					return true;
 				}
 			}
 			if (key == 's') {
-				if (this->selected < this->children().size()-1) { 
-					this->selected++;
+				if (this->_selected < this->children().size()-1) { 
+					this->_selected++;
 					return true;
 				}
 			}
 			return false;
 		}
+	private:
+		size_t _style = STYLE_VERTICAL;
+		size_t _selected = 0;
 	};
 
 }

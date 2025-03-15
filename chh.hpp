@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <codecvt>
 #include <vector>
 #include <map>
 #include <any>
@@ -24,18 +25,42 @@
 #endif
 #include <json/json.h>
 
-namespace CHH {
+namespace chh {
 
 	// Converts a vector of characters to a string.
 	std::string toString(const std::vector<char>& vec) {
 		return std::string(vec.begin(), vec.end());
 	}
 
+	// Converts a wide string string to a narrow string.
+	std::string toString(const std::wstring& wstr) {
+		if (wstr.empty()) return std::string();
+		size_t size_needed = std::wcstombs(nullptr, wstr.c_str(), 0);
+		if (size_needed == static_cast<size_t>(-1)) {
+			throw std::runtime_error("Invalid wide character encountered during conversion.");
+		}
+		std::string str(size_needed, 0);
+		std::wcstombs(str.data(), wstr.c_str(), size_needed);
+		return str;
+	}
+
+	// Converts a narrow string to a wide string.
+	std::wstring toWString(const std::string& str) {
+		if (str.empty()) return std::wstring();
+		size_t size_needed = std::mbstowcs(nullptr, str.c_str(), 0);
+		if (size_needed == static_cast<size_t>(-1)) {
+			throw std::runtime_error("Invalid wide character encountered during conversion.");
+		}
+		std::wstring wstr(size_needed, 0);
+		std::mbstowcs(wstr.data(), str.c_str(), size_needed);
+		return wstr;
+	}
+
 	// Reads the contents of a file into a vector of characters.
-	std::vector<char> readFile(std::string file_name) {
+	std::vector<char> readFile(const std::string& file_name) {
 		try {
 			std::ifstream file(file_name, std::ios::binary);
-			if (!file) {
+			if (!file.is_open()) {
 				throw std::runtime_error("Unable to open file: " + file_name);
 			}
 			std::uintmax_t size = std::filesystem::file_size(file_name);
@@ -54,7 +79,7 @@ namespace CHH {
 	}
 
 	// Reads a resource from the system by its name and type.
-	std::vector<char> readFromResource(size_t name, std::string type) {
+	std::vector<char> readResource(const size_t& name, const std::string& type) {
 #ifdef _WIN32
 		HRSRC hRsrc = FindResourceA(NULL, MAKEINTRESOURCEA(name), type.c_str());
 		if (!hRsrc) {
