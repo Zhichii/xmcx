@@ -1,7 +1,12 @@
 ﻿{
+  "text.1": "イロハニホヘト チリヌルヲ",
+  "text.2": "ワカヨタレソ ツネナラム",
+  "text.3": "ウヰノオクヤマ ケフコエテ",
+  "text.4": "アサキユメミシ ヱヒモセス",
   "menu": "メニュー",
   "menu.launch": "ローンチ",
   "menu.accounts": "アカウント",
   "menu.mods": "モッド",
-  "menu.settings": "セッティング"
+  "menu.settings": "セッティング",
+  "exit": "エクシット"
 }

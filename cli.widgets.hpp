@@ -7,18 +7,6 @@
 
 namespace cli {
 
-    // Move the console cursor to (0,0).
-    void cls() {
-#ifdef _WIN32
-        COORD coord;
-        coord.X = 0; coord.Y = 0;
-        HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleCursorPosition(console, coord);
-#endif
-#ifdef _linux_
-#endif
-    }
-
 	struct Widget;
 	struct Application;
 
@@ -51,19 +39,29 @@ namespace cli {
 
 	// The main entry for the whole application.
 	struct Application : Widget {
+#ifdef CHH_WINDOWS
 		Application() : Widget(nullptr) {
-#ifdef _WIN32
 			this->_console = GetStdHandle(STD_OUTPUT_HANDLE);
+			HWND hWnd = GetConsoleWindow();
+			char buffer[129]; GetClassNameA(hWnd, buffer, 128);
+			if (std::string(buffer) == "ConsoleWindowClass") {
+				printf("Unsupported console. Please use Windows Terminal.");
+				this->_should_exit = true;
+				return;
+			}
 			CONSOLE_CURSOR_INFO cci;
 			GetConsoleCursorInfo(this->_console, &cci);
 			cci.bVisible = false;
 			SetConsoleCursorInfo(this->_console, &cci);
 			setlocale(LC_ALL, "zh_cn.utf8");
 			SetConsoleOutputCP(CP_UTF8);
-#endif
-#ifdef _linux_
-#endif
 		}
+#endif
+#ifdef CHH_LINUX
+		Application() : Widget(nullptr) {
+			setlocale(LC_ALL, "zh_cn.utf8");
+		}
+#endif
 		~Application() = default;
 		std::string onRender(bool focus) {
 			if (this->_displaying < this->children().size())
@@ -76,14 +74,13 @@ namespace cli {
 		}
 		void mainloop() {
 			while (!this->_should_exit) {
-				cls();
+				this->cls();
 				printf("%s", this->onRender(true).c_str());
-				if (_kbhit()) {
-					char key = _getch();
+				if (kbhit()) {
+					char key = getch();
 					this->onKeyPress(key);
-					if (key == 'z') break;
 				}
-				Sleep(1000 / 60);
+				sleep(1000 / 60);
 			}
 		}
 		const std::vector<Widget*>& widgets() { return this->_widgets; }
@@ -98,40 +95,38 @@ namespace cli {
 			}
 		}
 		const LanguageManager& languages() { return this->_languages; }
-		void loadLanguage(const std::string& name, const std::string& font, const std::string& content) {
-			this->_languages.load(name, font, content);
+		void loadLanguage(const std::string& name, const std::string& content) {
+			this->_languages.load(name, content);
 		}
-		void loadLanguageFromFile(const std::string& name, const std::string& font, const std::string& file_name) {
-			this->_languages.loadFile(name, font, file_name);
+		void loadLanguageFromFile(const std::string& name, const std::string& file_name) {
+			this->_languages.loadFile(name, file_name);
 		}
-		void loadLanguageFromResource(const std::string& name, const std::string& font, const size_t& res_name, const std::string& res_type) {
-			this->_languages.loadResource(name, font, res_name, res_type);
+#ifdef CHH_WINDOWS
+		void loadLanguageFromResource(const std::string& name, const size_t& res_name, const std::string& res_type) {
+			this->_languages.loadResource(name, res_name, res_type);
 		}
+#endif
+#ifdef CHH_LINUX
+		void loadLanguageFromResource(const std::string& name, const size_t& res_name, const std::string& res_type) = delete;
+#endif
 		void switchLanguage(const std::string& name) {
 			const LanguageManager::Language& language = this->_languages.switchLanguage(name);
-			this->setFont(language.font(), 16);
 		}
 		void exit() {
 			this->_should_exit = true;
 		}
 	private:
+#ifdef CHH_WINDOWS
+		HANDLE _console;
+#endif
 		std::vector<Widget*> _widgets;
 		size_t _focus = 0;
 		size_t _displaying = 0;
-		HANDLE _console;
 		LanguageManager _languages;
 		bool _should_exit = false;
-		BOOL setFont(const std::wstring& name, SHORT font_size) {
-			if (name.size() >= LF_FACESIZE) return FALSE;
-			CONSOLE_FONT_INFOEX fontInfo;
-			fontInfo.cbSize = sizeof(fontInfo);
-			fontInfo.nFont = 0;
-			fontInfo.dwFontSize.X = 0;
-			fontInfo.dwFontSize.Y = font_size;
-			fontInfo.FontFamily = FF_DONTCARE;
-			fontInfo.FontWeight = FW_NORMAL;
-			wcscpy_s(fontInfo.FaceName, LF_FACESIZE, name.c_str());
-			return SetCurrentConsoleFontEx(this->_console, TRUE, &fontInfo);
+		// Move the console cursor to (0,0).
+		void cls() {
+			printf("\033[H");
 		}
 	};
 

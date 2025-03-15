@@ -1,7 +1,12 @@
 ﻿{
+  "text.1": "床前明月光，",
+  "text.2": "疑是地上霜。",
+  "text.3": "举头望明月，",
+  "text.4": "低头思故乡。",
   "menu": "菜单",
   "menu.launch": "启动",
   "menu.accounts": "账户",
   "menu.mods": "模组",
-  "menu.settings": "设置"
+  "menu.settings": "设置",
+  "exit": "退出"
 }

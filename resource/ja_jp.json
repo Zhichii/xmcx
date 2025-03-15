@@ -1,7 +1,12 @@
 ﻿{
+  "text.1": "いろはにほへと ちりぬるを",
+  "text.2": "我が世誰ぞ 常ならむ",
+  "text.3": "ウヰノオクヤマ ケフコエテ",
+  "text.4": "浅キ夢見ジ 酔ヒモセズ",
   "menu": "メニュー",
   "menu.launch": "起動",
   "menu.accounts": "アカウント",
   "menu.mods": "モッド",
-  "menu.settings": "設定"
+  "menu.settings": "設定",
+  "exit": "終了"
 }

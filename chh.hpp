@@ -18,10 +18,49 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <conio.h>
+#define CHH_WINDOWS
+#define getch _getch
+#define kbhit _kbhit
+#define sleep Sleep
 #undef max
 #undef min
 #endif
 #ifdef __linux__
+#define CHH_LINUX
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
+#define sleep usleep
+int getch() {
+	termios oldt, newt;
+	int ch;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	ch = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	return ch;
+}
+int kbhit() {
+	termios oldt, newt;
+	int ch;
+	int oldf;
+	tcgetattr(STDIN_FILENO, &oldt);
+	newt = oldt;
+	newt.c_lflag &= ~(ICANON | ECHO);
+	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+	ch = getchar();
+	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+	fcntl(STDIN_FILENO, F_SETFL, oldf);
+	if (ch != EOF) {
+		ungetc(ch, stdin);
+		return 1;
+	}
+	return 0;
+}
 #endif
 #include <json/json.h>
 
@@ -78,9 +117,9 @@ namespace chh {
 		}
 	}
 
+#ifdef CHH_WINDOWS
 	// Reads a resource from the system by its name and type.
 	std::vector<char> readResource(const size_t& name, const std::string& type) {
-#ifdef _WIN32
 		HRSRC hRsrc = FindResourceA(NULL, MAKEINTRESOURCEA(name), type.c_str());
 		if (!hRsrc) {
 			throw std::runtime_error("Failed to find resource: " + std::to_string(name) + ".");
@@ -102,10 +141,11 @@ namespace chh {
 		std::vector<char> vec(arr, arr + size);
 		FreeResource(IDR);
 		return vec;
-#endif
-#ifdef __linux__
-#endif
 	}
+#endif
+#ifdef CHH_LINUX
+	std::vector<char> readResource(const size_t& name, const std::string& type) = delete;
+#endif
 
 	// Parses a JSON string into a JSON object.
 	Json::Value parseJson(const std::string& content) {

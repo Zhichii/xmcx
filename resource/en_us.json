@@ -1,7 +1,12 @@
 ﻿{
+  "text.1": "a quick brown fox jumps",
+  "text.2": "over the lazy dog",
+  "text.3": "A QUICK BROWN FOX JUMPS",
+  "text.4": "OVER THE LAZY DOG",
   "menu": "Menu",
   "menu.launch": "Launch",
   "menu.accounts": "Accounts",
   "menu.mods": "Mods",
-  "menu.settings": "Settings"
+  "menu.settings": "Settings",
+  "exit": "Exit"
 }

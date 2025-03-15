@@ -12,7 +12,7 @@ namespace cli {
         class Language {
         public:
             Language() = default;
-            Language(std::string font, const std::string& content) {
+            Language(const std::string& content) {
                 Json::Value root = chh::parseJson(content);
                 if (!root.isObject()) {
                     throw std::runtime_error("`root` is not an object.");
@@ -20,7 +20,6 @@ namespace cli {
                 for (const auto& i : root.getMemberNames()) {
                     this->_content[i] = root[i].asString();
                 }
-                this->_font = chh::toWString(font);
             }
             std::string localize(const std::string& key) const {
                 if (this->_content.count(key)) {
@@ -30,21 +29,24 @@ namespace cli {
                     return key;
                 }
             }
-            std::wstring font() const { return this->_font; }
         private:
             std::map<std::string, std::string> _content;
-            std::wstring _font;
         };
         LanguageManager() = default;
-        void load(const std::string& name, const std::string& font, const std::string& content) {
-            this->_languages[name] = Language(font, content);
+        void load(const std::string& name, const std::string& content) {
+            this->_languages[name] = Language(content);
         }
-        void loadFile(const std::string& name, const std::string& font, const std::string& file_name) {
-            this->_languages[name] = Language(font, chh::toString(chh::readFile(file_name)));
+        void loadFile(const std::string& name, const std::string& file_name) {
+            this->_languages[name] = Language(chh::toString(chh::readFile(file_name)));
         }
-        void loadResource(std::string name, const std::string& font, size_t res_name, std::string res_type) {
-            this->_languages[name] = Language(font, chh::toString(chh::readResource(res_name, res_type)));
+#ifdef CHH_WINDOWS
+        void loadResource(std::string name, size_t res_name, std::string res_type) {
+            this->_languages[name] = Language(chh::toString(chh::readResource(res_name, res_type)));
         }
+#endif
+#ifdef CHH_LINUX
+        void loadResource(std::string name, size_t res_name, std::string res_type) = delete;
+#endif
         const Language& switchLanguage(std::string language) {
             if (this->_languages.count(language)) {
                 this->_current = language;
