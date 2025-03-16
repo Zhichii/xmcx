@@ -8,9 +8,9 @@
 
 这个项目包含三个部分：
 
-- **CHH (C++ HillQiu's Helper)**: 这是一个轻量级的 C++ 工具箱，带有文件、资源和 JSON 处理工具。
+- **CHH (C++ HillQiu's Helper)**: 这是一个轻量级的 C++ 工具箱，带有文件、Windows 资源读取和 JSON 处理工具。
 
-- **CLI (Command-Line Interface)**: 这是一个轻量级的 C++ “界面”框架，实际运行于命令行界面中。
+- **HTI (HillQiu Text user Interface)**: 这是一个轻量级的 C++ 文本用户界面框架。
 
   - **控件**: 按钮和列表。
   

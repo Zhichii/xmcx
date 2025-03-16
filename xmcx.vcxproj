@@ -149,12 +149,16 @@
     <ClCompile Include="xmcx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cli.localize.hpp" />
-    <ClInclude Include="cli.widgets.hpp" />
+    <ClInclude Include="hti.hpp" />
+    <ClInclude Include="hti.i18n.hpp" />
+    <ClInclude Include="hti.widgets.button.hpp" />
     <ClInclude Include="chh.hpp" />
+    <ClInclude Include="hti.widgets.list.hpp" />
+    <ClInclude Include="hti.widgets.widget.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="hti.widgets.application.hpp" />
     <None Include="resource\zh_cn.json" />
     <None Include="resource\zh_tw.json" />
     <None Include="resource\en_us.json" />

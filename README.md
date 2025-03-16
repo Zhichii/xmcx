@@ -8,9 +8,9 @@
 
 This project contains three parts:
 
-- **CHH (C++ HillQiu's Helper)**: This is a lightweight C++ toolbox with file, resource, and JSON handling utilities.
+- **CHH (C++ HillQiu's Helper)**: This is a lightweight C++ toolbox with file, Window resource reading, and JSON handling utilities.
 
-- **CLI (Command-Line Interface)**: This is a lightweight C++ "GUI" framework actually running in CLI.
+- **HTI (HillQiu Text user Interface)**: This is a lightweight C++ TUI framework.
 
   - **Widgets**: Buttons and lists.
   
