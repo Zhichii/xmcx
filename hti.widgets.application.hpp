@@ -11,7 +11,7 @@ namespace hti::widgets {
 	 * @brief 整个程序的入口。
 	 */
 	struct Application : Widget {
-#ifdef CHH_WINDOWS
+#if CHH_IS_WINDOWS
 		Application() : Widget(nullptr) {
 			this->_console = GetStdHandle(STD_OUTPUT_HANDLE);
 			HWND hWnd = GetConsoleWindow();
@@ -28,13 +28,18 @@ namespace hti::widgets {
 			setlocale(LC_ALL, "zh_cn.utf8");
 			SetConsoleOutputCP(CP_UTF8);
 		}
-#endif
-#ifdef CHH_LINUX
+#elif CHH_IS_LINUX
 		Application() : Widget(nullptr) {
 			setlocale(LC_ALL, "zh_cn.utf8");
 		}
 #endif
+#if CHH_IS_WINDOWS
+		~Application() {
+			CloseHandle(this->_console);
+		}
+#elif CHH_IS_LINUX
 		~Application() = default;
+#endif
 		std::string onRender(bool focus) {
 			if (this->_displaying < this->children().size())
 				return this->children()[_displaying]->onRender(true);
@@ -46,13 +51,51 @@ namespace hti::widgets {
 		}
 		void mainloop() {
 			while (!this->_should_exit) {
-				this->cls();
-				printf("%s", this->onRender(true).c_str());
-				if (kbhit()) {
-					char key = getch();
-					this->onKeyPress(key);
+				printf("\033[H"); // 移动光标到 (0, 0) 。
+				std::string temp = this->onRender(true) + "\n";
+				int width, height;
+				getConsoleSize(width, height);
+				// 用空格填充每一行。
+				char* buffer = new char[width+1];
+				memset(buffer, ' ', width);
+				buffer[width] = 0;
+				int y = 0, x = 0;
+				std::ostringstream oss;
+				for (const auto& i : temp) {
+					if (y >= height-1) break;
+					switch (i) {
+					default: {
+						if (x >= width); // 下落到换行。
+						else {
+							buffer[x] = i;
+							x++;
+							break;
+						}
+						[[fallthrough]];
+					}
+					case '\n': {
+						oss << buffer << "\n";
+						memset(buffer, ' ', width);
+						buffer[width] = 0;
+						y++;
+						// 挺有趣的：y++ 相当于 \n, x=0 相当于 \r.
+						[[fallthrough]];
+					}
+					case '\r': {
+						x = 0;
+						break;
+					}
+					case '\b': {
+						x--;
+						break;
+					}
+					}
 				}
-				sleep(1000 / 60);
+				printf("%s", oss.str().c_str());
+				if (kbhit()) {
+					this->onKeyPress(getch());
+				}
+				sleep(30);
 			}
 		}
 		const std::vector<Widget*>& widgets() { return this->_widgets; }
@@ -73,12 +116,11 @@ namespace hti::widgets {
 		void loadLanguageFromFile(const std::string& name, const std::string& file_name) {
 			this->_languages.loadFile(name, file_name);
 		}
-#ifdef CHH_WINDOWS
+#if CHH_IS_WINDOWS
 		void loadLanguageFromResource(const std::string& name, const size_t& res_name, const std::string& res_type) {
 			this->_languages.loadResource(name, res_name, res_type);
 		}
-#endif
-#ifdef CHH_LINUX
+#elif CHH_IS_LINUX
 		void loadLanguageFromResource(const std::string& name, const size_t& res_name, const std::string& res_type) = delete;
 #endif
 		void switchLanguage(const std::string& name) {
@@ -88,7 +130,7 @@ namespace hti::widgets {
 			this->_should_exit = true;
 		}
 	private:
-#ifdef CHH_WINDOWS
+#if CHH_IS_WINDOWS
 		HANDLE _console;
 #endif
 		std::vector<Widget*> _widgets;
@@ -96,9 +138,18 @@ namespace hti::widgets {
 		size_t _displaying = 0;
 		i18n::LanguageManager _languages;
 		bool _should_exit = false;
-		// Move the console cursor to (0,0).
-		void cls() {
-			printf("\033[H");
+		void getConsoleSize(int& width, int& height) {
+#ifdef _WIN32
+			CONSOLE_SCREEN_BUFFER_INFO csbi;
+			GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+			width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+			height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+#else
+			struct winsize w;
+			ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+			width = w.ws_col;
+			height = w.ws_row;
+#endif
 		}
 	};
 

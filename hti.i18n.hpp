@@ -76,7 +76,7 @@ namespace hti::i18n {
         void loadFile(const std::string& name, const std::string& file_name) {
             this->_languages[name] = Language(chh::toString(chh::readFile(file_name)));
         }
-#ifdef CHH_WINDOWS
+#if CHH_IS_WINDOWS
         /**
          * @brief 从 Windows 资源中加载语言。
 	     * @note 该函数仅在 Windows 平台上可用。
@@ -88,8 +88,7 @@ namespace hti::i18n {
         void loadResource(std::string name, size_t res_name, std::string res_type) {
             this->_languages[name] = Language(chh::toString(chh::readResource(res_name, res_type)));
         }
-#endif
-#ifdef CHH_LINUX
+#elif CHH_IS_LINUX
         /**
          * @brief 从 Windows 资源中加载语言。
          * @warning 该函数仅在 Windows 平台上可用。

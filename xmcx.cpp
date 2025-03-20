@@ -1,4 +1,4 @@
-#include "resource.h"
+﻿#include "resource.h"
 #include "hti.hpp"
 
 hti::i18n::Text i18n(std::string str) {
@@ -58,6 +58,6 @@ int main() {
 		});
 
 	app->mainloop();
-	delete app;
+	delete app; // 会自动释放子控件。
 	return 0;
 }

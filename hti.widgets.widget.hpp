@@ -12,6 +12,7 @@ namespace hti::widgets {
 
 	/**
 	 * @brief 控件基类。
+	 * @note 会自动释放子控件。
 	 */
 	struct Widget {
 		Widget(Widget* parent);

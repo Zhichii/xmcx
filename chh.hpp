@@ -14,22 +14,22 @@
 #include <stdexcept>
 #include <filesystem>
 
-#ifdef _WIN32
+#if defined _WIN32
 #include <Windows.h>
 #include <conio.h>
-#define CHH_WINDOWS
+#define CHH_IS_WINDOWS 1
+#define CHH_IS_LINUX 0
 #define getch _getch
 #define kbhit _kbhit
 #define sleep Sleep
 #undef max
 #undef min
-#endif
-
-#ifdef __linux__
+#elif defined __linux__
 #include <termios.h>
 #include <unistd.h>
 #include <fcntl.h>
-#define CHH_LINUX
+#define CHH_IS_WINDOWS 0
+#define CHH_IS_LINUX 1
 #define sleep usleep
 int getch() {
 	termios oldt, newt;
@@ -62,6 +62,7 @@ int kbhit() {
 	return 0;
 }
 #endif
+
 #include <json/json.h>
 
 /**
@@ -139,7 +140,7 @@ namespace chh {
 		}
 	}
 
-#ifdef CHH_WINDOWS
+#if CHH_IS_WINDOWS
 	/**
 	 * @brief 从 Windows 资源中读取字符向量。
 	 * @note 该函数仅在 Windows 平台上可用。
@@ -171,8 +172,7 @@ namespace chh {
 		FreeResource(IDR);
 		return vec;
 	}
-#endif
-#ifdef CHH_LINUX
+#elif CHH_IS_LINUX
 	/**
 	 * @brief 从 Windows 资源中读取字符向量。
 	 * @warning 该函数仅在 Windows 平台上可用。
